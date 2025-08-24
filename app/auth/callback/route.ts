@@ -1,3 +1,4 @@
+// app/auth/callback/route.ts
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
@@ -5,12 +6,11 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr';
 export async function GET(request: Request) {
   const url = new URL(request.url);
 
-  // Prepare a response we can attach cookies to
-  // Default to home on success; we'll override if needed
+  // We will redirect to "/" (adjust if you want a dashboard path)
   const res = NextResponse.redirect(new URL('/', url));
 
-  // Read cookies from the incoming request
-  const cookieStore = cookies();
+  // In your Next version, cookies() is async
+  const cookieStore = await cookies();
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -20,11 +20,12 @@ export async function GET(request: Request) {
         get(name: string) {
           return cookieStore.get(name)?.value;
         },
-        set(name: string, value: string, options?: CookieOptions) {
+        set(name: string, value: string, options: CookieOptions) {
+          // mutate via response cookies in route handlers
           res.cookies.set(name, value, options);
         },
-        remove(name: string, options?: CookieOptions) {
-          // No delete() on all channels; emulate with maxAge: 0
+        remove(name: string, options: CookieOptions) {
+          // emulate delete by setting empty value + maxAge: 0
           res.cookies.set(name, '', { ...options, maxAge: 0 });
         },
       },
@@ -32,29 +33,29 @@ export async function GET(request: Request) {
   );
 
   try {
-    const code = url.searchParams.get('code');        // OAuth / PKCE
+    const code = url.searchParams.get('code');        // OAuth/PKCE
     const token_hash = url.searchParams.get('token_hash'); // Magic link / recovery
-    const type = url.searchParams.get('type') ?? 'magiclink';
+    const type = (url.searchParams.get('type') ?? 'magiclink') as
+      | 'magiclink'
+      | 'recovery'
+      | 'invite'
+      | 'email_change';
 
     if (code) {
       const { error } = await supabase.auth.exchangeCodeForSession(code);
       if (error) throw error;
     } else if (token_hash) {
-      const { error } = await supabase.auth.verifyOtp({
-        type: type as 'magiclink' | 'recovery' | 'invite' | 'email_change',
-        token_hash,
-      });
+      const { error } = await supabase.auth.verifyOtp({ type, token_hash });
       if (error) throw error;
     } else {
-      return NextResponse.redirect(
-        new URL('/login?message=missing_params', url)
-      );
+      // Missing params -> bounce to login with a message
+      return NextResponse.redirect(new URL('/login?message=missing_params', url));
     }
 
-    // Success: cookie got set on `res`
+    // Success -> send them to /
     return res;
-  } catch (err: unknown) {
-    const msg = err instanceof Error ? encodeURIComponent(err.message) : 'auth_failed';
+  } catch (err: any) {
+    const msg = encodeURIComponent(err?.message ?? 'auth_failed');
     return NextResponse.redirect(new URL(`/login?message=${msg}`, url));
   }
 }
