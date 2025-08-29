@@ -7,18 +7,22 @@ import { createClient } from '@/lib/supabase/client';
 export default function LoginPage() {
   const supabase = createClient();
   const [email, setEmail] = useState('');
-  const [msg, setMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setMsg(null);
 
+    // Use Vercel URL in prod, localhost in dev
+    const base =
+      process.env.NEXT_PUBLIC_SITE_URL ?? window.location.origin;
+
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: `${location.origin}/auth/callback`,
+        emailRedirectTo: `${base}/auth/callback`,
       },
     });
 
@@ -29,15 +33,17 @@ export default function LoginPage() {
   return (
     <div className="space-y-5">
       <h1 className="text-2xl font-semibold">Sign in</h1>
+
       <form onSubmit={onSubmit} className="space-y-3">
         <input
           type="email"
           required
-          placeholder="you@email.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          placeholder="you@email.com"
           className="w-full rounded border border-neutral-700 bg-neutral-900 p-3"
         />
+
         <button
           type="submit"
           disabled={loading}
@@ -45,9 +51,9 @@ export default function LoginPage() {
         >
           {loading ? 'Sending…' : 'Send magic link'}
         </button>
-      </form>
 
-      {msg && <p className="text-sm opacity-80">{msg}</p>}
+        {msg && <p className="text-sm opacity-80">{msg}</p>}
+      </form>
     </div>
   );
 }
