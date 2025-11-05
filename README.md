@@ -5,6 +5,14 @@ Deployed with Vercel.
 
 ---
 
+> ⚠️ **Project Status:** Currently on the back burner while active development continues on Shift-Insight.  
+> Ravencroft Auth remains public as a proof-of-concept showing my direction for authentication systems.  
+> Updates will roll out gradually as supporting components (UI/UX, backend integrations) are finalized elsewhere.
+>
+> *"Even paused work still moves forward in thought."* 
+
+---
+
 ## 🚀 Features
 - 🔑 **Supabase Auth** – email magic link login
 - 🔒 **Protected routes** – dashboard requires login
