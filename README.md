@@ -5,11 +5,10 @@ Deployed with Vercel.
 
 ---
 
-> ⚠️ **Project Status:** Currently on the back burner while active development continues on Shift-Insight.  
-> Ravencroft Auth remains public as a proof-of-concept showing my direction for authentication systems.  
-> Updates will roll out gradually as supporting components (UI/UX, backend integrations) are finalized elsewhere.
->
-> *"Even paused work still moves forward in thought."* 
+>⚠️ Project Status:
+This project is deprecated. Its successor—Ravencroft Auth API—advances the architecture and replaces this build entirely.
+
+“Some tools are stepping stones. This one reached the end of its path so a better version could begin.”
 
 ---
 
